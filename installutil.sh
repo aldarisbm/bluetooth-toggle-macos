@@ -20,6 +20,6 @@ else
     brew install blueutil
 fi
 
-if ! grep -qF "/mnt/dev" usr/bin/crontab; then
-      echo "/dev/sda1 /mnt/dev ext4 defaults 0 0" | sudo tee -a /etc/fstab
+if ! crontab -l | grep -qF "togglebt.sh"; then
+    crontab -l | { cat; echo "0 0 * * * $(pwd)/togglebt.sh"; } | crontab -
 fi
