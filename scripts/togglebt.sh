@@ -1,17 +1,17 @@
 #!/bin/bash
-LID_OPEN=$(ioreg -r -k AppleClamshellState | grep AppleClamshellState | cut -d \  -f8)
+CLAMSHELL_STATE_ON=$(ioreg -r -k AppleClamshellState | grep AppleClamshellState | cut -d \  -f8)
 
 CONNECTED_TO_POWER=$(pmset -g batt | head -n 1 | cut -d \' -f2)
 
-echo "${LID_OPEN}"
+echo "${CLAMSHELL_STATE_ON}"
 echo 
 echo "${CONNECTED_TO_POWER}"
 echo
-if [[ "${LID_OPEN}" == "No" && "${CONNECTED_TO_POWER}" == "Battery Power" ]]
+if [[ "${CLAMSHELL_STATE_ON}" == "Yes" ]] && [[ "${CONNECTED_TO_POWER}" == "Battery Power" ]]
 then
     blueutil -p 0
-    echo "Lid is closed & bluetooth should be off" >> lidclosed.txt
+    echo "Lid is closed & bluetooth should be off"
 else
-    echo "Lid is open & bluetooth should be on" >> lidopen.txt
+    echo "Lid is open & bluetooth should be on"
     blueutil -p 1
 fi
