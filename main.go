@@ -18,18 +18,8 @@ func main() {
 	}
 	defer f.Close()
 	for {
-		clamshellMode, _ := isInClamshellMode()
-		clamstring := fmt.Sprintf("Clamshell mode: %t\n", clamshellMode)
-		l, err := f.WriteString(clamstring)
-		if err != nil {
-			fmt.Println(err)
-			f.Close()
-			return
-		}
 
-		connectedToACPower, _ := isConnectedToACPower()
-		connectedString := fmt.Sprintf("Connected to AC Power: %t\n", connectedToACPower)
-		l, err = f.WriteString(connectedString)
+		l, err := f.WriteString("boop")
 		if err != nil {
 			fmt.Println(err)
 			f.Close()
@@ -53,6 +43,18 @@ func isConnectedToACPower() (bool, error) {
 	return cleansedString == "AC Power", nil
 }
 
+func isInClamshellMode() (bool, error) {
+	out, err := exec.Command("/usr/sbin/ioreg", "-r", "-k", appleClamshellState).Output()
+	if err != nil {
+		return false, fmt.Errorf("Error while running ioreg command: %s", err)
+	}
+	cleansedString, err := cleanseIoregString(string(out))
+	if err != nil {
+		return false, err
+	}
+	return cleansedString == "Yes", nil
+}
+
 func cleansePmsetString(out string) (string, error) {
 	equalityStringCheck := "Now drawing from "
 	outSplit := strings.Split(string(out), "\n")
@@ -66,18 +68,6 @@ func cleansePmsetString(out string) (string, error) {
 	return "", fmt.Errorf("Was not able to find \"%s\" running command", equalityStringCheck)
 }
 
-func isInClamshellMode() (bool, error) {
-	out, err := exec.Command("/usr/sbin/ioreg", "-r", "-k", appleClamshellState).Output()
-	if err != nil {
-		return false, fmt.Errorf("Error while running ioreg command: %s", err)
-	}
-	cleansedString, err := cleanseIoregString(string(out))
-	if err != nil {
-		return false, err
-	}
-	return cleansedString == "Yes", nil
-}
-
 func cleanseIoregString(out string) (string, error) {
 	outSplit := strings.Split(out, "\n")
 	for _, line := range outSplit {
@@ -89,6 +79,19 @@ func cleanseIoregString(out string) (string, error) {
 	return "", fmt.Errorf("Was not able to find \"%s\" running command", appleClamshellState)
 }
 
-// func toggleBluetooth() {
+func toggleBluetooth(toggle string) error {
+	if err := exec.Command("/usr/local/bin/blueutil", "-p", toggle).Run(); err != nil {
+		return err
+	}
+	return nil
+}
 
-// }
+func confirmBlueToothState(toggle string) (bool, error) {
+	out, err := exec.Command("/usr/local/bin/blueutil", "-p").Output()
+	if err != nil {
+		return false, err
+	}
+	outString := string(out)
+	fmt.Printf("output: %s\n", outString)
+	return outString == toggle, nil
+}
