@@ -36,7 +36,3 @@ else
     echo
     brew install blueutil
 fi
-
-if ! crontab -l | grep -qF "togglebt.sh"; then
-    crontab -l | { cat; echo "0 0 * * * $(pwd)/togglebt.sh"; } | crontab -
-fi
