@@ -9,6 +9,8 @@ import (
 )
 
 const appleClamshellState = "AppleClamshellState"
+const on = "1"
+const off = "0"
 
 func main() {
 	f, err := os.Create("app.log")
@@ -18,7 +20,7 @@ func main() {
 	}
 	defer f.Close()
 	for {
-
+		_ = runJob()
 		l, err := f.WriteString("boop")
 		if err != nil {
 			fmt.Println(err)
@@ -29,6 +31,31 @@ func main() {
 		fmt.Println(l, "bytes written successfully")
 		time.Sleep(3 * time.Second)
 	}
+}
+
+func runJob() error {
+	connectedToPower, err := isConnectedToACPower()
+	if err != nil {
+		return err
+	}
+	lidClosed, err := isLidCLosed()
+	if err != nil {
+		return err
+	}
+	if !connectedToPower && lidClosed {
+		state, err := confirmBlueToothState(off)
+		if err != nil {
+			return err
+		}
+		if state {
+			return nil
+		}
+		toggleBluetooth(off)
+	}
+	if connectedToPower {
+		toggleBluetooth(on)
+	}
+	return nil
 }
 
 func isConnectedToACPower() (bool, error) {
@@ -43,7 +70,7 @@ func isConnectedToACPower() (bool, error) {
 	return cleansedString == "AC Power", nil
 }
 
-func isInClamshellMode() (bool, error) {
+func isLidCLosed() (bool, error) {
 	out, err := exec.Command("/usr/sbin/ioreg", "-r", "-k", appleClamshellState).Output()
 	if err != nil {
 		return false, fmt.Errorf("Error while running ioreg command: %s", err)
