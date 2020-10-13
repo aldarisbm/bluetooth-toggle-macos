@@ -8,9 +8,11 @@ import (
 	"time"
 )
 
-const appleClamshellState = "AppleClamshellState"
-const on = "1"
-const off = "0"
+const (
+	appleClamshellState = "AppleClamshellState"
+	on                  = "1"
+	off                 = "0"
+)
 
 func main() {
 	f, err := os.Create("app.log")
