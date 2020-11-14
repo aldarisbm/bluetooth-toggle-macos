@@ -45,17 +45,17 @@ func runJob() error {
 		return err
 	}
 	if !connectedToPower && lidClosed {
-		state, err := confirmBlueToothState(off)
+		state, err := isBluetoothOff()
 		if err != nil {
 			return err
 		}
 		if state {
 			return nil
 		}
-		toggleBluetooth(off)
+		turnOffBluetooth()
 	}
 	if connectedToPower {
-		toggleBluetooth(on)
+		turnOnBluetooth()
 	}
 	return nil
 }
@@ -108,19 +108,26 @@ func cleanseIoregString(out string) (string, error) {
 	return "", fmt.Errorf("Was not able to find \"%s\" running command", appleClamshellState)
 }
 
-func toggleBluetooth(toggle string) error {
-	if err := exec.Command("/usr/local/bin/blueutil", "-p", toggle).Run(); err != nil {
+func turnOffBluetooth() error {
+	if err := exec.Command("/usr/local/bin/blueutil", "-p", off).Run(); err != nil {
 		return err
 	}
 	return nil
 }
 
-func confirmBlueToothState(toggle string) (bool, error) {
+func turnOnBluetooth() error {
+	if err := exec.Command("/usr/local/bin/blueutil", "-p", on).Run(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func isBluetoothOff() (bool, error) {
 	out, err := exec.Command("/usr/local/bin/blueutil", "-p").Output()
 	if err != nil {
 		return false, err
 	}
 	outString := string(out)
 	fmt.Printf("output: %s\n", outString)
-	return outString == toggle, nil
+	return outString == off, nil
 }
